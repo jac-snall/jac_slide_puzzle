@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        //scaffoldBackgroundColor: Colors.black,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -32,7 +33,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  double _x = pi / 4, _y = pi / 4;
+  double _x = 0, _y = 0;
+  Matrix4 skew = Matrix4.identity()
+    ..rotateX(pi / 16)
+    ..rotateY(pi / 16);
+  late Matrix4 transformation;
+
+  @override
+  void initState() {
+    transformation = Matrix4.identity()
+      ..rotateX(_x)
+      ..rotateY(_y);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,68 +53,101 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: GestureDetector(
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () => setState(() {
+                _x = _x - pi / 2;
+                transformation = Matrix4.identity()
+                  ..rotateX(_x)
+                  ..rotateY(_y);
+              }),
+              icon: const Icon(Icons.arrow_upward),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => setState(() {
+                    _y = _y + pi / 2;
+                    transformation = Matrix4.identity()
+                      ..rotateY(_y)
+                      ..rotateX(_x);
+                  }),
+                  icon: const Icon(Icons.arrow_back),
+                ),
+                SizedBox(
+                  width: 500,
+                  height: 500,
+                  child: Center(
+                    child: Cube(
+                      transformation: skew.multiplied(transformation),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => setState(() {
+                    _y = _y - pi / 2;
+                    transformation = Matrix4.identity()
+                      ..rotateY(_y)
+                      ..rotateX(_x);
+                  }),
+                  icon: const Icon(Icons.arrow_forward),
+                ),
+              ],
+            ),
+            IconButton(
+              onPressed: () => setState(() {
+                _x = _x + pi / 2;
+                transformation = Matrix4.identity()
+                  ..rotateX(_x)
+                  ..rotateY(_y);
+              }),
+              icon: const Icon(Icons.arrow_downward),
+            ),
+          ],
+        ),
+      ),
+      /*body: GestureDetector(
         onPanUpdate: (DragUpdateDetails u) => setState(() {
           _x = (_x + u.delta.dy / 150) % (pi * 2);
           _y = (_y + -u.delta.dx / 150) % (pi * 2);
         }),
-        child: SizedBox(
-          width: 400,
-          height: 400,
-          child: Center(child: Cube(rotX: _x, rotY: _y)),
+        child: Center(
+          child: SizedBox(
+            width: 600,
+            height: 600,
+            child: Center(child: Cube(rotX: _x, rotY: _y)),
+          ),
         ),
-      ),
+      ),*/
     );
   }
 }
 
 class Cube extends StatelessWidget {
-  final double rotX, rotY;
-  Cube({Key? key, required this.rotX, required this.rotY}) : super(key: key);
+  //final double rotX, rotY;
+  final Matrix4 transformation;
+  Cube({Key? key, required this.transformation}) : super(key: key);
   final List<Side> sides = [
-    Side(
-      color: Colors.blue,
-      rotX: 0,
-      rotY: 0,
-      name: "front",
-    ), // Front
-    Side(
-      color: Colors.green,
-      rotX: pi,
-      rotY: 0,
-      name: "back",
-    ), // Back
-    Side(
-      color: Colors.yellow,
-      rotX: 0,
-      rotY: pi / 2,
-      name: "left",
-    ), // Left
-    Side(color: Colors.red, rotX: 0, rotY: 3 * pi / 2, name: "Right"), // Right
-    Side(
-      color: Colors.pink,
-      rotX: 3 * pi / 2,
-      rotY: 0,
-      name: "Top",
-    ), // Top
-    Side(
-      color: Colors.grey,
-      rotX: pi / 2,
-      rotY: 0,
-      name: "Bottom",
-    ), // Bottom
+    Side(color: Colors.blue, rotX: 0, rotY: 0, name: "front"), // Front
+    Side(color: Colors.green, rotX: pi, rotY: 0, name: "back"), // Back
+    Side(color: Colors.yellow, rotX: 0, rotY: pi / 2, name: "left"), // Left
+    Side(color: Colors.red, rotX: 0, rotY: -pi / 2, name: "Right"), // Right
+    Side(color: Colors.pink, rotX: -pi / 2, rotY: 0, name: "Top"), // Top
+    Side(color: Colors.grey, rotX: pi / 2, rotY: 0, name: "Bottom"), // Bottom
   ];
   @override
   Widget build(BuildContext context) {
     return Transform(
-      transform: Matrix4.identity()
-        ..rotateX(rotX)
-        ..rotateY(rotY),
+      transform: transformation,
       alignment: Alignment.center,
       child: Stack(
         children: sides
             .where(
-              (side) => side.visible(rotX, rotY),
+              (side) => side.visible(transformation),
             )
             .toList(),
       ),
@@ -128,11 +174,9 @@ class Side extends StatefulWidget {
       ..rotateY(rotY));
   }
 
-  bool visible(double rotX, double rotY) {
+  bool visible(Matrix4 transformation) {
     var midPointCopy = midPoint.clone();
-    midPointCopy.applyMatrix4(Matrix4.identity()
-      ..rotateX(rotX)
-      ..rotateY(rotY));
+    midPointCopy.applyMatrix4(transformation);
     return midPointCopy.z < 0;
   }
 
@@ -147,14 +191,21 @@ class _SideState extends State<Side> {
       transform: Matrix4.identity()
         ..rotateX(widget.rotX)
         ..rotateY(widget.rotY)
-        ..translate(0.0, 0.0, -50.0),
+        ..translate(0.0, 0.0, -150.0),
       alignment: Alignment.center,
-      child: Container(
-        width: 100,
-        height: 100,
-        color: widget.color,
-        child: const Center(
-          child: Icon(Icons.arrow_upward),
+      child: SizedBox(
+        width: 300,
+        height: 300,
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(5)),
+              color: widget.color,
+            ),
+            child: const Center(
+              child: Icon(Icons.arrow_upward),
+            ),
+          ),
         ),
       ),
     );
