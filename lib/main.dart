@@ -32,18 +32,35 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   double _x = 0, _y = 0;
   Matrix4 skew = Matrix4.identity()
     ..rotateX(pi / 16)
     ..rotateY(pi / 16);
   late Matrix4 transformation;
 
+  //Animation objects
+  late AnimationController controller;
+  RotationTween rotTween = RotationTween();
+  late Animation<Matrix4> animation;
+
   @override
   void initState() {
     transformation = Matrix4.identity()
       ..rotateX(_x)
       ..rotateY(_y);
+
+    controller =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
+
+    //Current transformation
+    rotTween.begin = skew.multiplied(transformation);
+    rotTween.end = skew.multiplied(transformation);
+    animation = rotTween.animate(controller)
+      ..addListener(() {
+        setState(() {});
+      });
     super.initState();
   }
 
@@ -58,24 +75,38 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             IconButton(
-              onPressed: () => setState(() {
+              /*onPressed: () => setState(() {
                 _x = _x - pi / 2;
                 transformation = Matrix4.identity()
                   ..rotateX(_x)
                   ..rotateY(_y);
-              }),
+              }),*/
+              onPressed: () {
+                _x = (_x - pi / 2) % (2 * pi);
+                transformation = Matrix4.identity()
+                  ..rotateX(_x)
+                  ..rotateY(_y);
+                rotTween.begin = rotTween.end;
+                rotTween.end = skew.multiplied(transformation);
+                controller.reset();
+                controller.forward();
+              },
               icon: const Icon(Icons.arrow_upward),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () => setState(() {
+                  onPressed: () {
                     _y = _y + pi / 2;
                     transformation = Matrix4.identity()
                       ..rotateY(_y)
                       ..rotateX(_x);
-                  }),
+                    rotTween.begin = rotTween.end;
+                    rotTween.end = skew.multiplied(transformation);
+                    controller.reset();
+                    controller.forward();
+                  },
                   icon: const Icon(Icons.arrow_back),
                 ),
                 SizedBox(
@@ -83,46 +114,41 @@ class _MyHomePageState extends State<MyHomePage> {
                   height: 500,
                   child: Center(
                     child: Cube(
-                      transformation: skew.multiplied(transformation),
+                      transformation: animation.value,
                     ),
                   ),
                 ),
                 IconButton(
-                  onPressed: () => setState(() {
+                  onPressed: () {
                     _y = _y - pi / 2;
                     transformation = Matrix4.identity()
                       ..rotateY(_y)
                       ..rotateX(_x);
-                  }),
+                    rotTween.begin = rotTween.end;
+                    rotTween.end = skew.multiplied(transformation);
+                    controller.reset();
+                    controller.forward();
+                  },
                   icon: const Icon(Icons.arrow_forward),
                 ),
               ],
             ),
             IconButton(
-              onPressed: () => setState(() {
+              onPressed: () {
                 _x = _x + pi / 2;
                 transformation = Matrix4.identity()
                   ..rotateX(_x)
                   ..rotateY(_y);
-              }),
+                rotTween.begin = rotTween.end;
+                rotTween.end = skew.multiplied(transformation);
+                controller.reset();
+                controller.forward();
+              },
               icon: const Icon(Icons.arrow_downward),
             ),
           ],
         ),
       ),
-      /*body: GestureDetector(
-        onPanUpdate: (DragUpdateDetails u) => setState(() {
-          _x = (_x + u.delta.dy / 150) % (pi * 2);
-          _y = (_y + -u.delta.dx / 150) % (pi * 2);
-        }),
-        child: Center(
-          child: SizedBox(
-            width: 600,
-            height: 600,
-            child: Center(child: Cube(rotX: _x, rotY: _y)),
-          ),
-        ),
-      ),*/
     );
   }
 }
@@ -209,5 +235,55 @@ class _SideState extends State<Side> {
         ),
       ),
     );
+  }
+}
+
+class RotationTween extends Tween<Matrix4> {
+  @override
+  Matrix4 lerp(double t) {
+    assert(begin != null);
+    assert(end != null);
+
+    //slerp for interpolating between rotations
+    // see stack overflow: https://stackoverflow.com/a/4099423
+
+    vec.Quaternion qa = vec.Quaternion.fromRotation(begin!.getRotation())
+      ..normalize();
+    vec.Quaternion qb = vec.Quaternion.fromRotation(end!.getRotation())
+      ..normalize();
+
+    double cosHalfTheta = qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z;
+
+    if (cosHalfTheta >= 1.0) {
+      return Matrix4.compose(vec.Vector3.zero(), qa, vec.Vector3(1, 1, 1));
+    }
+
+    double halfTheta = acos(cosHalfTheta);
+    double sinHalfTheta = sqrt(1.0 - cosHalfTheta * cosHalfTheta);
+
+    if (sinHalfTheta.abs() < 0.001) {
+      return Matrix4.compose(
+          vec.Vector3.zero(),
+          vec.Quaternion(
+            (qa.x + qb.x) / 2,
+            (qa.y + qb.y) / 2,
+            (qa.z + qb.z) / 2,
+            (qa.w + qb.w) / 2,
+          ),
+          vec.Vector3.zero());
+    }
+
+    double ratioA = sin((1 - t) * halfTheta) / sinHalfTheta;
+    double ratioB = sin(t * halfTheta) / sinHalfTheta;
+
+    return Matrix4.compose(
+        vec.Vector3.zero(),
+        vec.Quaternion(
+          qa.x * ratioA + qb.x * ratioB,
+          qa.y * ratioA + qb.y * ratioB,
+          qa.z * ratioA + qb.z * ratioB,
+          qa.w * ratioA + qb.w * ratioB,
+        ),
+        vec.Vector3(1, 1, 1));
   }
 }
