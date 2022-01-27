@@ -59,6 +59,16 @@ class _MyHomePageState extends State<MyHomePage>
     super.initState();
   }
 
+  void updateView(Matrix4 trans) {
+    if (!controller.isAnimating) {
+      transformation = trans..multiply(transformation);
+      rotTween.begin = rotTween.end;
+      rotTween.end = skew.multiplied(transformation);
+      controller.reset();
+      controller.forward();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,12 +81,7 @@ class _MyHomePageState extends State<MyHomePage>
           children: [
             IconButton(
               onPressed: () {
-                transformation = Matrix4.rotationX(-pi / 2)
-                  ..multiply(transformation);
-                rotTween.begin = rotTween.end;
-                rotTween.end = skew.multiplied(transformation);
-                controller.reset();
-                controller.forward();
+                updateView(Matrix4.rotationX(-pi / 2));
               },
               icon: const Icon(Icons.arrow_upward),
             ),
@@ -85,12 +90,7 @@ class _MyHomePageState extends State<MyHomePage>
               children: [
                 IconButton(
                   onPressed: () {
-                    transformation = Matrix4.rotationY(pi / 2)
-                      ..multiply(transformation);
-                    rotTween.begin = rotTween.end;
-                    rotTween.end = skew.multiplied(transformation);
-                    controller.reset();
-                    controller.forward();
+                    updateView(Matrix4.rotationY(pi / 2));
                   },
                   icon: const Icon(Icons.arrow_back),
                 ),
@@ -105,12 +105,7 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
                 IconButton(
                   onPressed: () {
-                    transformation = Matrix4.rotationY(-pi / 2)
-                      ..multiply(transformation);
-                    rotTween.begin = rotTween.end;
-                    rotTween.end = skew.multiplied(transformation);
-                    controller.reset();
-                    controller.forward();
+                    updateView(Matrix4.rotationY(-pi / 2));
                   },
                   icon: const Icon(Icons.arrow_forward),
                 ),
@@ -118,12 +113,7 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             IconButton(
               onPressed: () {
-                transformation = Matrix4.rotationX(pi / 2)
-                  ..multiply(transformation);
-                rotTween.begin = rotTween.end;
-                rotTween.end = skew.multiplied(transformation);
-                controller.reset();
-                controller.forward();
+                updateView(Matrix4.rotationX(pi / 2));
               },
               icon: const Icon(Icons.arrow_downward),
             ),
