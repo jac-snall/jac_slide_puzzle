@@ -34,11 +34,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-  double _x = 0, _y = 0;
   Matrix4 skew = Matrix4.identity()
     ..rotateX(pi / 16)
     ..rotateY(pi / 16);
-  late Matrix4 transformation;
+  Matrix4 transformation = Matrix4.identity();
 
   //Animation objects
   late AnimationController controller;
@@ -47,10 +46,6 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void initState() {
-    transformation = Matrix4.identity()
-      ..rotateX(_x)
-      ..rotateY(_y);
-
     controller =
         AnimationController(duration: const Duration(seconds: 1), vsync: this);
 
@@ -75,17 +70,9 @@ class _MyHomePageState extends State<MyHomePage>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             IconButton(
-              /*onPressed: () => setState(() {
-                _x = _x - pi / 2;
-                transformation = Matrix4.identity()
-                  ..rotateX(_x)
-                  ..rotateY(_y);
-              }),*/
               onPressed: () {
-                _x = (_x - pi / 2) % (2 * pi);
-                transformation = Matrix4.identity()
-                  ..rotateX(_x)
-                  ..rotateY(_y);
+                transformation = Matrix4.rotationX(-pi / 2)
+                  ..multiply(transformation);
                 rotTween.begin = rotTween.end;
                 rotTween.end = skew.multiplied(transformation);
                 controller.reset();
@@ -98,10 +85,8 @@ class _MyHomePageState extends State<MyHomePage>
               children: [
                 IconButton(
                   onPressed: () {
-                    _y = _y + pi / 2;
-                    transformation = Matrix4.identity()
-                      ..rotateY(_y)
-                      ..rotateX(_x);
+                    transformation = Matrix4.rotationY(pi / 2)
+                      ..multiply(transformation);
                     rotTween.begin = rotTween.end;
                     rotTween.end = skew.multiplied(transformation);
                     controller.reset();
@@ -120,10 +105,8 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
                 IconButton(
                   onPressed: () {
-                    _y = _y - pi / 2;
-                    transformation = Matrix4.identity()
-                      ..rotateY(_y)
-                      ..rotateX(_x);
+                    transformation = Matrix4.rotationY(-pi / 2)
+                      ..multiply(transformation);
                     rotTween.begin = rotTween.end;
                     rotTween.end = skew.multiplied(transformation);
                     controller.reset();
@@ -135,10 +118,8 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             IconButton(
               onPressed: () {
-                _x = _x + pi / 2;
-                transformation = Matrix4.identity()
-                  ..rotateX(_x)
-                  ..rotateY(_y);
+                transformation = Matrix4.rotationX(pi / 2)
+                  ..multiply(transformation);
                 rotTween.begin = rotTween.end;
                 rotTween.end = skew.multiplied(transformation);
                 controller.reset();
@@ -253,6 +234,11 @@ class RotationTween extends Tween<Matrix4> {
       ..normalize();
 
     double cosHalfTheta = qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z;
+
+    if (cosHalfTheta < 0) {
+      qb.scale(-1);
+      cosHalfTheta = -cosHalfTheta;
+    }
 
     if (cosHalfTheta >= 1.0) {
       return Matrix4.compose(vec.Vector3.zero(), qa, vec.Vector3(1, 1, 1));
