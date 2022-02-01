@@ -8,9 +8,15 @@ class PuzzlePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PuzzleCubit(),
-      child: const PuzzleView(),
-    );
+        create: (_) => PuzzleCubit(),
+        child: SafeArea(
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('3D slide puzzle'),
+            ),
+            body: const PuzzleView(),
+          ),
+        ));
   }
 }
 
@@ -19,47 +25,40 @@ class PuzzleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('3D slide puzzle'),
-        ),
-        body: Center(
-          //TODO: Add responsive layout for button positions
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    return Center(
+      //TODO: Add responsive layout for button positions
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: () => context.read<PuzzleCubit>().rotateUp(),
+            icon: const Icon(Icons.arrow_upward),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                onPressed: () => context.read<PuzzleCubit>().rotateUp(),
-                icon: const Icon(Icons.arrow_upward),
+                onPressed: () => context.read<PuzzleCubit>().rotateLeft(),
+                icon: const Icon(Icons.arrow_back),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () => context.read<PuzzleCubit>().rotateLeft(),
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  const SizedBox(
-                    width: 500,
-                    height: 500,
-                    child: Center(
-                      child: AnimatedPuzzleCube(),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => context.read<PuzzleCubit>().rotateRight(),
-                    icon: const Icon(Icons.arrow_forward),
-                  ),
-                ],
+              const SizedBox(
+                width: 500,
+                height: 500,
+                child: Center(
+                  child: AnimatedPuzzleCube(),
+                ),
               ),
               IconButton(
-                onPressed: () => context.read<PuzzleCubit>().rotateDown(),
-                icon: const Icon(Icons.arrow_downward),
+                onPressed: () => context.read<PuzzleCubit>().rotateRight(),
+                icon: const Icon(Icons.arrow_forward),
               ),
             ],
           ),
-        ),
+          IconButton(
+            onPressed: () => context.read<PuzzleCubit>().rotateDown(),
+            icon: const Icon(Icons.arrow_downward),
+          ),
+        ],
       ),
     );
   }
