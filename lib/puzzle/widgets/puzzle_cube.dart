@@ -90,6 +90,26 @@ class Side extends StatelessWidget {
 //Midpoint of side
   final vector.Vector3 midPoint = vector.Vector3(0.0, 0.0, -1.0);
 
+  //Tiles
+  final List<int> tiles = [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+  ];
+
   Side({
     Key? key,
     required this.color,
@@ -119,7 +139,41 @@ class Side extends StatelessWidget {
       child: SizedBox(
         width: 300,
         height: 300,
-        child: Center(
+        child: Stack(
+          children: [
+            for (var item in tiles)
+              Positioned(
+                left: 75.0 * (item % 4),
+                top: 75.0 * (item ~/ 4),
+                child: SizedBox(
+                  width: 75,
+                  height: 75,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 5),
+                      color: color,
+                    ),
+                    child: Center(
+                      child: Text('${item + 1} '),
+                    ),
+                  ),
+                ),
+              ),
+            Positioned(
+                child: SizedBox(
+              width: 75,
+              height: 75,
+              child: Container(
+                  decoration: BoxDecoration(
+                border: Border.all(
+                  width: 5,
+                  color: Colors.yellow,
+                ),
+              )),
+            ))
+          ],
+        ),
+        /*Center(
           child: Container(
             decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -128,7 +182,7 @@ class Side extends StatelessWidget {
               child: Icon(Icons.arrow_upward),
             ),
           ),
-        ),
+        ),*/
       ),
     );
   }
