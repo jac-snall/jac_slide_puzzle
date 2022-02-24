@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,10 +31,7 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
         AnimationController(duration: const Duration(seconds: 1), vsync: this);
     rotationTween.begin = transformation;
     rotationTween.end = transformation;
-    animation = rotationTween.animate(controller)
-      ..addListener(() {
-        setState(() {});
-      });
+    animation = rotationTween.animate(controller);
     super.initState();
   }
 
@@ -44,20 +42,6 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
     controller.forward();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<PuzzleCubit, PuzzleState>(
-      listener: startAnimation,
-      child: Cube(
-        transformation: animation.value,
-      ),
-    );
-  }
-}
-
-class Cube extends StatelessWidget {
-  final Matrix4 transformation;
-  Cube({Key? key, required this.transformation}) : super(key: key);
   final List<Side> sides = [
     Side(color: Colors.blue, rotX: 0, rotY: 0, name: "front"), // Front
     Side(color: Colors.green, rotX: pi, rotY: 0, name: "back"), // Back
@@ -66,19 +50,81 @@ class Cube extends StatelessWidget {
     Side(color: Colors.pink, rotX: -pi / 2, rotY: 0, name: "Top"), // Top
     Side(color: Colors.grey, rotX: pi / 2, rotY: 0, name: "Bottom"), // Bottom
   ];
+
   @override
   Widget build(BuildContext context) {
-    return Transform(
-      transform: transformation,
-      alignment: Alignment.center,
-      child: Stack(
-        children: sides
-            .where(
-              (side) => side.visible(transformation),
-            )
-            .toList(),
+    return BlocListener<PuzzleCubit, PuzzleState>(
+      listener: startAnimation,
+      child: Flow(
+        delegate: CubeFlowDelegate(cubeAnimation: animation),
+        children: sides,
       ),
     );
+  }
+}
+
+class CubeFlowDelegate extends FlowDelegate {
+  final Animation<Matrix4> cubeAnimation;
+
+  List<Matrix4> sideRot = [
+    Matrix4.identity()
+      ..rotateX(0)
+      ..rotateY(0)
+      ..translate(0.0, 0.0, -150.0),
+    Matrix4.identity()
+      ..rotateX(pi)
+      ..rotateY(0)
+      ..translate(0.0, 0.0, -150.0),
+    Matrix4.identity()
+      ..rotateX(0)
+      ..rotateY(pi / 2)
+      ..translate(0.0, 0.0, -150.0),
+    Matrix4.identity()
+      ..rotateX(0)
+      ..rotateY(-pi / 2)
+      ..translate(0.0, 0.0, -150.0),
+    Matrix4.identity()
+      ..rotateX(-pi / 2)
+      ..rotateY(0)
+      ..translate(0.0, 0.0, -150.0),
+    Matrix4.identity()
+      ..rotateX(pi / 2)
+      ..rotateY(0)
+      ..translate(0.0, 0.0, -150.0),
+  ];
+
+  CubeFlowDelegate({required this.cubeAnimation})
+      : super(repaint: cubeAnimation);
+
+  bool isVisible(int side, Matrix4 transformation) {
+    /*var midPointCopy = midPoints[side].clone();
+    midPointCopy.applyMatrix4(transformation);
+    return midPointCopy.z < 0;*/
+    var midpoint = vector.Vector3(0, 0, -1.0)..applyMatrix4(transformation);
+    return midpoint.z < 0;
+  }
+
+  @override
+  void paintChildren(FlowPaintingContext context) {
+    // Need to translate -150,-150 first to get center of child to rotate around origo
+    // Then translate 250, 250 to get to the center of the flow
+
+    for (int i = 0; i < context.childCount; i++) {
+      Matrix4 transformation = cubeAnimation.value.multiplied(sideRot[i]);
+      if (isVisible(i, transformation)) {
+        context.paintChild(
+          i,
+          transform: Matrix4.translationValues(250, 250, 0)
+              .multiplied(transformation)
+              .multiplied(Matrix4.translationValues(-150, -150, 0)),
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CubeFlowDelegate oldDelegate) {
+    return cubeAnimation != oldDelegate.cubeAnimation;
   }
 }
 
@@ -86,9 +132,6 @@ class Side extends StatelessWidget {
   final Color color;
   final double rotX, rotY;
   final String name;
-
-//Midpoint of side
-  final vector.Vector3 midPoint = vector.Vector3(0.0, 0.0, -1.0);
 
   //Tiles
   final List<int> tiles = [
@@ -102,12 +145,6 @@ class Side extends StatelessWidget {
     7,
     8,
     9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
   ];
 
   Side({
@@ -116,38 +153,24 @@ class Side extends StatelessWidget {
     required this.rotX,
     required this.rotY,
     required this.name,
-  }) : super(key: key) {
-    midPoint.applyMatrix4(Matrix4.identity()
-      ..rotateX(rotX)
-      ..rotateY(rotY));
-  }
-
-  bool visible(Matrix4 transformation) {
-    var midPointCopy = midPoint.clone();
-    midPointCopy.applyMatrix4(transformation);
-    return midPointCopy.z < 0;
-  }
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Transform(
-      transform: Matrix4.identity()
-        ..rotateX(rotX)
-        ..rotateY(rotY)
-        ..translate(0.0, 0.0, -150.0),
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: 300,
-        height: 300,
-        child: Stack(
-          children: [
-            for (var item in tiles)
-              Positioned(
-                left: 75.0 * (item % 4),
-                top: 75.0 * (item ~/ 4),
-                child: SizedBox(
-                  width: 75,
-                  height: 75,
+    return SizedBox(
+      width: 300,
+      height: 300,
+      child: Stack(
+        children: [
+          for (var item in tiles)
+            Positioned(
+              left: 100.0 * (item % 3),
+              top: 100.0 * (item ~/ 3),
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: GestureDetector(
+                  onTap: () => dev.log('Side: $name, tile: ${item + 1}'),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(width: 5),
@@ -159,30 +182,8 @@ class Side extends StatelessWidget {
                   ),
                 ),
               ),
-            Positioned(
-                child: SizedBox(
-              width: 75,
-              height: 75,
-              child: Container(
-                  decoration: BoxDecoration(
-                border: Border.all(
-                  width: 5,
-                  color: Colors.yellow,
-                ),
-              )),
-            ))
-          ],
-        ),
-        /*Center(
-          child: Container(
-            decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
-                color: color),
-            child: const Center(
-              child: Icon(Icons.arrow_upward),
             ),
-          ),
-        ),*/
+        ],
       ),
     );
   }
