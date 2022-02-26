@@ -31,6 +31,10 @@ class Puzzle {
     return sideList;
   }
 
+  Puzzle shuffle() {
+    return this;
+  }
+
   Puzzle moveTile(PuzzleTile tile) {
     var whiteSpacePosition = _getWhiteSpacePosition();
     var tilePosition = tile.currentPosition;
@@ -53,7 +57,7 @@ class Puzzle {
           switch (whiteSpacePosition.side) {
             case 2:
               if (tilePosition.x == 0 &&
-                  whiteSpacePosition.x == 2 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.y == whiteSpacePosition.y) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -61,7 +65,7 @@ class Puzzle {
               }
               break;
             case 3:
-              if (tilePosition.x == 2 &&
+              if (tilePosition.x == size - 1 &&
                   whiteSpacePosition.x == 0 &&
                   tilePosition.y == whiteSpacePosition.y) {
                 return Puzzle.fromTiles(
@@ -71,7 +75,7 @@ class Puzzle {
               break;
             case 4:
               if (tilePosition.y == 0 &&
-                  whiteSpacePosition.y == 2 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -79,7 +83,7 @@ class Puzzle {
               }
               break;
             case 5:
-              if (tilePosition.y == 2 &&
+              if (tilePosition.y == size - 1 &&
                   whiteSpacePosition.y == 0 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
@@ -101,8 +105,8 @@ class Puzzle {
               }
               break;
             case 3:
-              if (tilePosition.x == 2 &&
-                  whiteSpacePosition.x == 2 &&
+              if (tilePosition.x == size - 1 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.y == size - whiteSpacePosition.y - 1) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -110,7 +114,7 @@ class Puzzle {
               }
               break;
             case 4:
-              if (tilePosition.y == 2 &&
+              if (tilePosition.y == size - 1 &&
                   whiteSpacePosition.y == 0 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
@@ -120,7 +124,7 @@ class Puzzle {
               break;
             case 5:
               if (tilePosition.y == 0 &&
-                  whiteSpacePosition.y == 2 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -132,7 +136,7 @@ class Puzzle {
         case 2:
           switch (whiteSpacePosition.side) {
             case 0:
-              if (tilePosition.x == 2 &&
+              if (tilePosition.x == size - 1 &&
                   whiteSpacePosition.x == 0 &&
                   tilePosition.y == whiteSpacePosition.y) {
                 return Puzzle.fromTiles(
@@ -159,7 +163,7 @@ class Puzzle {
               }
               break;
             case 5:
-              if (tilePosition.y == 2 &&
+              if (tilePosition.y == size - 1 &&
                   whiteSpacePosition.x == 0 &&
                   tilePosition.x == size - whiteSpacePosition.y - 1) {
                 return Puzzle.fromTiles(
@@ -173,7 +177,7 @@ class Puzzle {
           switch (whiteSpacePosition.side) {
             case 0:
               if (tilePosition.x == 0 &&
-                  whiteSpacePosition.x == 2 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.y == whiteSpacePosition.y) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -181,8 +185,8 @@ class Puzzle {
               }
               break;
             case 1:
-              if (tilePosition.x == 2 &&
-                  whiteSpacePosition.x == 2 &&
+              if (tilePosition.x == size - 1 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.y == size - whiteSpacePosition.y - 1) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -191,7 +195,7 @@ class Puzzle {
               break;
             case 4:
               if (tilePosition.y == 0 &&
-                  whiteSpacePosition.x == 2 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.x == size - whiteSpacePosition.y - 1) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -199,8 +203,8 @@ class Puzzle {
               }
               break;
             case 5:
-              if (tilePosition.y == 2 &&
-                  whiteSpacePosition.x == 2 &&
+              if (tilePosition.y == size - 1 &&
+                  whiteSpacePosition.x == size - 1 &&
                   tilePosition.x == whiteSpacePosition.y) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -212,7 +216,7 @@ class Puzzle {
         case 4:
           switch (whiteSpacePosition.side) {
             case 0:
-              if (tilePosition.y == 2 &&
+              if (tilePosition.y == size - 1 &&
                   whiteSpacePosition.y == 0 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
@@ -222,7 +226,7 @@ class Puzzle {
               break;
             case 1:
               if (tilePosition.y == 0 &&
-                  whiteSpacePosition.y == 2 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -239,7 +243,7 @@ class Puzzle {
               }
               break;
             case 3:
-              if (tilePosition.x == 2 &&
+              if (tilePosition.x == size - 1 &&
                   whiteSpacePosition.y == 0 &&
                   tilePosition.y == size - whiteSpacePosition.x - 1) {
                 return Puzzle.fromTiles(
@@ -253,7 +257,7 @@ class Puzzle {
           switch (whiteSpacePosition.side) {
             case 0:
               if (tilePosition.y == 0 &&
-                  whiteSpacePosition.y == 2 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -261,7 +265,7 @@ class Puzzle {
               }
               break;
             case 1:
-              if (tilePosition.y == 2 &&
+              if (tilePosition.y == size - 1 &&
                   whiteSpacePosition.y == 0 &&
                   tilePosition.x == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
@@ -271,7 +275,7 @@ class Puzzle {
               break;
             case 2:
               if (tilePosition.x == 0 &&
-                  whiteSpacePosition.y == 2 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.y == size - whiteSpacePosition.x - 1) {
                 return Puzzle.fromTiles(
                     size: size,
@@ -279,8 +283,8 @@ class Puzzle {
               }
               break;
             case 3:
-              if (tilePosition.x == 2 &&
-                  whiteSpacePosition.y == 2 &&
+              if (tilePosition.x == size - 1 &&
+                  whiteSpacePosition.y == size - 1 &&
                   tilePosition.y == whiteSpacePosition.x) {
                 return Puzzle.fromTiles(
                     size: size,
