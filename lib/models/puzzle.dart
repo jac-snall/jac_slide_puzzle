@@ -1,6 +1,7 @@
 import 'package:jac_slide_puzzle/models/models.dart';
+import 'dart:math';
 
-import 'dart:developer';
+import 'dart:developer' as dev;
 
 class Puzzle {
   late final List<PuzzleSide> sides;
@@ -32,7 +33,48 @@ class Puzzle {
   }
 
   Puzzle shuffle() {
-    return this;
+    final correctPositions = <Position>[];
+    final currentPositions = <Position>[];
+
+    // Generate all possible comibinations of positions
+    for (int side = 0; side < 6; side++) {
+      for (int x = 0; x < size; x++) {
+        for (int y = 0; y < size; y++) {
+          if (!(side == 0 && x == size - 1 && y == size - 1)) {
+            final position = Position(x, y, side);
+            correctPositions.add(position);
+            currentPositions.add(position);
+          }
+        }
+      }
+    }
+
+    Random random = Random();
+    correctPositions.shuffle(random);
+
+    // Add whitespace tile
+    correctPositions.add(Position(size - 1, size - 1, 0));
+    currentPositions.add(Position(size - 1, size - 1, 0));
+
+    List<PuzzleSide> newSides = [];
+    for (int i = 0; i < 6; i++) {
+      newSides.add(PuzzleSide([]));
+    }
+    for (int i = 0; i < correctPositions.length; i++) {
+      dev.log('$i: (${currentPositions[i]}) (${correctPositions[i]}) ');
+      if (i == correctPositions.length - 1) {
+        //dev.log('$i: (${currentPositions[i]}) (${correctPositions[i]}) ');
+        newSides[currentPositions[i].side].tiles.add(PuzzleTile(
+            correctPositions[i], currentPositions[i],
+            isWhiteSpace: true));
+      } else {
+        newSides[currentPositions[i].side]
+            .tiles
+            .add(PuzzleTile(correctPositions[i], currentPositions[i]));
+      }
+    }
+    dev.log('${currentPositions.length}');
+    return Puzzle.fromTiles(size: size, sides: newSides);
   }
 
   Puzzle moveTile(PuzzleTile tile) {

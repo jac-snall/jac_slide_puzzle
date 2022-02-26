@@ -11,7 +11,7 @@ class PuzzleCubit extends Cubit<PuzzleState> {
   PuzzleCubit()
       : super(
           PuzzleState(
-            puzzle: Puzzle(),
+            puzzle: Puzzle().shuffle(),
             transformation: Matrix4.identity(),
           ),
         );
