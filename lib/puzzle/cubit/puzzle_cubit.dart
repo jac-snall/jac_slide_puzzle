@@ -41,4 +41,9 @@ class PuzzleCubit extends Cubit<PuzzleState> {
       transformation: Matrix4.rotationX(pi / 2)..multiply(state.transformation),
     ));
   }
+
+  //Tile tapped event
+  void tileTapped(PuzzleTile tile) {
+    emit(state.copyWith(puzzle: state.puzzle.moveTile(tile)));
+  }
 }

@@ -43,12 +43,12 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
   }
 
   final List<Side> sides = [
-    Side(color: Colors.blue, rotX: 0, rotY: 0, name: "front"), // Front
-    Side(color: Colors.green, rotX: pi, rotY: 0, name: "back"), // Back
-    Side(color: Colors.yellow, rotX: 0, rotY: pi / 2, name: "left"), // Left
-    Side(color: Colors.red, rotX: 0, rotY: -pi / 2, name: "Right"), // Right
-    Side(color: Colors.pink, rotX: -pi / 2, rotY: 0, name: "Top"), // Top
-    Side(color: Colors.grey, rotX: pi / 2, rotY: 0, name: "Bottom"), // Bottom
+    Side(color: Colors.blue, name: "front", index: 0), // Front
+    Side(color: Colors.green, name: "back", index: 1), // Back
+    Side(color: Colors.yellow, name: "left", index: 2), // Left
+    Side(color: Colors.red, name: "Right", index: 3), // Right
+    Side(color: Colors.pink, name: "Top", index: 4), // Top
+    Side(color: Colors.grey, name: "Bottom", index: 5), // Bottom
   ];
 
   @override
@@ -97,9 +97,6 @@ class CubeFlowDelegate extends FlowDelegate {
       : super(repaint: cubeAnimation);
 
   bool isVisible(int side, Matrix4 transformation) {
-    /*var midPointCopy = midPoints[side].clone();
-    midPointCopy.applyMatrix4(transformation);
-    return midPointCopy.z < 0;*/
     var midpoint = vector.Vector3(0, 0, -1.0)..applyMatrix4(transformation);
     return midpoint.z < 0;
   }
@@ -130,8 +127,8 @@ class CubeFlowDelegate extends FlowDelegate {
 
 class Side extends StatelessWidget {
   final Color color;
-  final double rotX, rotY;
   final String name;
+  final int index;
 
   //Tiles
   final List<int> tiles = [
@@ -150,34 +147,38 @@ class Side extends StatelessWidget {
   Side({
     Key? key,
     required this.color,
-    required this.rotX,
-    required this.rotY,
     required this.name,
+    required this.index,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    var puzzle = context.select((PuzzleCubit bloc) => bloc.state.puzzle);
+    var tiles = puzzle.sides[index].tiles;
     return SizedBox(
       width: 300,
       height: 300,
       child: Stack(
         children: [
-          for (var item in tiles)
+          for (var tile in tiles)
             Positioned(
-              left: 100.0 * (item % 3),
-              top: 100.0 * (item ~/ 3),
+              left: 300.0 / puzzle.size * (tile.currentPosition.x),
+              top: 300.0 / puzzle.size * (tile.currentPosition.y),
               child: SizedBox(
-                width: 100,
-                height: 100,
+                width: 300.0 / puzzle.size,
+                height: 300.0 / puzzle.size,
                 child: GestureDetector(
-                  onTap: () => dev.log('Side: $name, tile: ${item + 1}'),
+                  /*onTap: () => dev
+                      .log('${tile.currentPosition} , ${tile.correctPosition}'),*/
+                  onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(width: 5),
-                      color: color,
+                      border: Border.all(width: 1),
+                      color: tile.isWhiteSpace ? Colors.black : color,
                     ),
                     child: Center(
-                      child: Text('${item + 1} '),
+                      child: Text(
+                          '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}'),
                     ),
                   ),
                 ),
