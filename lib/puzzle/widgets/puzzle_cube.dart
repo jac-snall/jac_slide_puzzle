@@ -43,12 +43,12 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
   }
 
   final List<Side> sides = [
-    Side(color: Colors.blue, name: "front", index: 0), // Front
-    Side(color: Colors.green, name: "back", index: 1), // Back
-    Side(color: Colors.yellow, name: "left", index: 2), // Left
-    Side(color: Colors.red, name: "Right", index: 3), // Right
-    Side(color: Colors.pink, name: "Top", index: 4), // Top
-    Side(color: Colors.grey, name: "Bottom", index: 5), // Bottom
+    const Side(color: Colors.blue, name: "front", index: 0), // Front
+    const Side(color: Colors.green, name: "back", index: 1), // Back
+    const Side(color: Colors.yellow, name: "left", index: 2), // Left
+    const Side(color: Colors.red, name: "Right", index: 3), // Right
+    const Side(color: Colors.pink, name: "Top", index: 4), // Top
+    const Side(color: Colors.grey, name: "Bottom", index: 5), // Bottom
   ];
 
   @override
@@ -130,21 +130,7 @@ class Side extends StatelessWidget {
   final String name;
   final int index;
 
-  //Tiles
-  final List<int> tiles = [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-  ];
-
-  Side({
+  const Side({
     Key? key,
     required this.color,
     required this.name,
@@ -154,6 +140,7 @@ class Side extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var puzzle = context.select((PuzzleCubit bloc) => bloc.state.puzzle);
+    var colors = context.select((PuzzleCubit bloc) => bloc.state.sideColors);
     var tiles = puzzle.sides[index].tiles;
     return SizedBox(
       width: 300,
@@ -161,7 +148,9 @@ class Side extends StatelessWidget {
       child: Stack(
         children: [
           for (var tile in tiles)
-            Positioned(
+            AnimatedPositioned(
+              key: ValueKey('${tile.correctPosition}'),
+              duration: const Duration(milliseconds: 250),
               left: 300.0 / puzzle.size * (tile.currentPosition.x),
               top: 300.0 / puzzle.size * (tile.currentPosition.y),
               child: SizedBox(
@@ -174,7 +163,9 @@ class Side extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(width: 1),
-                      color: tile.isWhiteSpace ? Colors.black : color,
+                      color: tile.isWhiteSpace
+                          ? Colors.transparent
+                          : colors[tile.correctPosition.side],
                     ),
                     child: Center(
                       child: Text(

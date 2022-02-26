@@ -6,6 +6,15 @@ class PuzzleState extends Equatable {
     required this.puzzle,
   });
 
+  final List<Color> sideColors = [
+    Colors.blue,
+    Colors.green,
+    Colors.yellow,
+    Colors.red,
+    Colors.pink,
+    Colors.grey,
+  ];
+
   final Matrix4 transformation;
   final Matrix4 skew = Matrix4.identity()
     ..rotateX(pi / 16)
