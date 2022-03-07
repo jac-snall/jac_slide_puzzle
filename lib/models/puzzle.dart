@@ -341,6 +341,140 @@ class Puzzle {
     }
   }
 
+  //Get the positon of the tiles around the whitespace tile
+  Map<String, Position> getWhiteSpaceNeighbours() {
+    var neighbours = <String, Position>{};
+
+    var whiteSpacePosition = _getWhiteSpacePosition();
+
+    // left
+    if (whiteSpacePosition.x == 0) {
+      switch (whiteSpacePosition.side) {
+        case 0:
+          neighbours['left'] = Position(size - 1, whiteSpacePosition.y, 2);
+          break;
+        case 1:
+          neighbours['left'] = Position(0, size - whiteSpacePosition.y - 1, 2);
+          break;
+        case 2:
+          neighbours['left'] = Position(0, size - whiteSpacePosition.y - 1, 1);
+          break;
+        case 3:
+          neighbours['left'] = Position(size - 1, whiteSpacePosition.y, 0);
+          break;
+        case 4:
+          neighbours['left'] = Position(whiteSpacePosition.y, 0, 2);
+          break;
+        case 5:
+          neighbours['left'] =
+              Position(size - whiteSpacePosition.y - 1, size - 1, 2);
+          break;
+      }
+    } else {
+      neighbours['left'] = Position(
+        whiteSpacePosition.x - 1,
+        whiteSpacePosition.y,
+        whiteSpacePosition.side,
+      );
+    }
+
+    // right
+    if (whiteSpacePosition.x == size - 1) {
+      switch (whiteSpacePosition.side) {
+        case 0:
+          neighbours['right'] = Position(0, whiteSpacePosition.y, 3);
+          break;
+        case 1:
+          neighbours['right'] =
+              Position(size - 1, size - whiteSpacePosition.y - 1, 3);
+          break;
+        case 2:
+          neighbours['right'] = Position(0, whiteSpacePosition.y, 0);
+          break;
+        case 3:
+          neighbours['right'] =
+              Position(size - 1, size - whiteSpacePosition.y - 1, 1);
+          break;
+        case 4:
+          neighbours['right'] = Position(size - whiteSpacePosition.y - 1, 0, 3);
+          break;
+        case 5:
+          neighbours['right'] = Position(whiteSpacePosition.y, size - 1, 3);
+          break;
+      }
+    } else {
+      neighbours['right'] = Position(
+        whiteSpacePosition.x + 1,
+        whiteSpacePosition.y,
+        whiteSpacePosition.side,
+      );
+    }
+
+    // top
+    if (whiteSpacePosition.y == 0) {
+      switch (whiteSpacePosition.side) {
+        case 0:
+          neighbours['top'] = Position(whiteSpacePosition.x, size - 1, 4);
+          break;
+        case 1:
+          neighbours['top'] = Position(whiteSpacePosition.x, size - 1, 5);
+          break;
+        case 2:
+          neighbours['top'] = Position(0, whiteSpacePosition.x, 4);
+          break;
+        case 3:
+          neighbours['top'] =
+              Position(size - 1, size - whiteSpacePosition.x - 1, 4);
+          break;
+        case 4:
+          neighbours['top'] = Position(whiteSpacePosition.x, size - 1, 1);
+          break;
+        case 5:
+          neighbours['top'] = Position(whiteSpacePosition.x, size - 1, 0);
+          break;
+      }
+    } else {
+      neighbours['top'] = Position(
+        whiteSpacePosition.x,
+        whiteSpacePosition.y - 1,
+        whiteSpacePosition.side,
+      );
+    }
+
+    // bottom
+    if (whiteSpacePosition.y == size - 1) {
+      switch (whiteSpacePosition.side) {
+        case 0:
+          neighbours['bottom'] = Position(whiteSpacePosition.x, 0, 5);
+          break;
+        case 1:
+          neighbours['bottom'] = Position(whiteSpacePosition.x, 0, 4);
+          break;
+        case 2:
+          neighbours['bottom'] =
+              Position(0, size - whiteSpacePosition.x - 1, 5);
+          break;
+        case 3:
+          neighbours['bottom'] = Position(size - 1, whiteSpacePosition.x, 5);
+          break;
+        case 4:
+          neighbours['bottom'] = Position(whiteSpacePosition.x, 0, 0);
+          break;
+        case 5:
+          neighbours['bottom'] = Position(whiteSpacePosition.x, 0, 1);
+          break;
+      }
+    } else {
+      neighbours['bottom'] = Position(
+        whiteSpacePosition.x,
+        whiteSpacePosition.y + 1,
+        whiteSpacePosition.side,
+      );
+    }
+
+    return neighbours;
+  }
+
   Position _getWhiteSpacePosition() {
     for (PuzzleSide side in sides) {
       for (PuzzleTile tile in side.tiles) {

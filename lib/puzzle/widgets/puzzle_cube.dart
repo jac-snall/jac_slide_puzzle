@@ -36,6 +36,7 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
   }
 
   void startAnimation(BuildContext context, PuzzleState state) {
+    dev.log('Animate rotation');
     rotationTween.begin = rotationTween.end;
     rotationTween.end = state.skew.multiplied(state.transformation);
     controller.reset();
@@ -54,6 +55,11 @@ class _AnimatedPuzzleCubeState extends State<AnimatedPuzzleCube>
   @override
   Widget build(BuildContext context) {
     return BlocListener<PuzzleCubit, PuzzleState>(
+      listenWhen: (previous, current) {
+        var change = previous.transformation != current.transformation;
+        dev.log(change.toString());
+        return change;
+      },
       listener: startAnimation,
       child: Flow(
         delegate: CubeFlowDelegate(cubeAnimation: animation),
@@ -142,6 +148,7 @@ class Side extends StatelessWidget {
     var puzzle = context.select((PuzzleCubit bloc) => bloc.state.puzzle);
     var colors = context.select((PuzzleCubit bloc) => bloc.state.sideColors);
     var tiles = puzzle.sides[index].tiles;
+    dev.log('${puzzle.getWhiteSpaceNeighbours()}');
     return SizedBox(
       width: 300,
       height: 300,
@@ -150,26 +157,28 @@ class Side extends StatelessWidget {
           for (var tile in tiles)
             AnimatedPositioned(
               key: ValueKey('${tile.correctPosition}'),
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
               left: 300.0 / puzzle.size * (tile.currentPosition.x),
               top: 300.0 / puzzle.size * (tile.currentPosition.y),
               child: SizedBox(
                 width: 300.0 / puzzle.size,
                 height: 300.0 / puzzle.size,
                 child: GestureDetector(
-                  /*onTap: () => dev
-                      .log('${tile.currentPosition} , ${tile.correctPosition}'),*/
                   onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(width: 1),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
                       color: tile.isWhiteSpace
                           ? Colors.transparent
                           : colors[tile.correctPosition.side],
                     ),
                     child: Center(
                       child: Text(
-                          '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}'),
+                        '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                        //'${tile.correctPosition.y * puzzle.size + tile.correctPosition.x + 1}',
+                      ),
                     ),
                   ),
                 ),
