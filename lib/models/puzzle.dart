@@ -78,7 +78,7 @@ class Puzzle {
   }
 
   Puzzle moveTile(PuzzleTile tile) {
-    var whiteSpacePosition = _getWhiteSpacePosition();
+    var whiteSpacePosition = getWhiteSpacePosition();
     var tilePosition = tile.currentPosition;
     if (whiteSpacePosition.side == tilePosition.side) {
       if ((whiteSpacePosition.x - 1 == tilePosition.x &&
@@ -345,7 +345,7 @@ class Puzzle {
   Map<String, Position> getWhiteSpaceNeighbours() {
     var neighbours = <String, Position>{};
 
-    var whiteSpacePosition = _getWhiteSpacePosition();
+    var whiteSpacePosition = getWhiteSpacePosition();
 
     // left
     if (whiteSpacePosition.x == 0) {
@@ -475,7 +475,13 @@ class Puzzle {
     return neighbours;
   }
 
-  Position _getWhiteSpacePosition() {
+  PuzzleTile getTileFromPosition(Position position) {
+    return sides[position.side]
+        .tiles
+        .firstWhere((tile) => tile.currentPosition == position);
+  }
+
+  Position getWhiteSpacePosition() {
     for (PuzzleSide side in sides) {
       for (PuzzleTile tile in side.tiles) {
         if (tile.isWhiteSpace) return tile.currentPosition;

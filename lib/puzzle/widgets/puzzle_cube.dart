@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 import 'package:jac_slide_puzzle/puzzle/cubit/puzzle_cubit.dart';
+import 'package:jac_slide_puzzle/models/models.dart';
 
 class AnimatedPuzzleCube extends StatefulWidget {
   const AnimatedPuzzleCube({Key? key}) : super(key: key);
@@ -143,48 +144,217 @@ class Side extends StatelessWidget {
     required this.index,
   }) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    var puzzle = context.select((PuzzleCubit bloc) => bloc.state.puzzle);
-    var colors = context.select((PuzzleCubit bloc) => bloc.state.sideColors);
+  List<Widget> _createTiles(
+      Puzzle puzzle, List<Color> sideColors, BuildContext context) {
     var tiles = puzzle.sides[index].tiles;
-    dev.log('${puzzle.getWhiteSpaceNeighbours()}');
-    return SizedBox(
-      width: 300,
-      height: 300,
-      child: Stack(
-        children: [
-          for (var tile in tiles)
-            AnimatedPositioned(
-              key: ValueKey('${tile.correctPosition}'),
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              left: 300.0 / puzzle.size * (tile.currentPosition.x),
-              top: 300.0 / puzzle.size * (tile.currentPosition.y),
-              child: SizedBox(
-                width: 300.0 / puzzle.size,
-                height: 300.0 / puzzle.size,
-                child: GestureDetector(
-                  onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 1),
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      color: tile.isWhiteSpace
-                          ? Colors.transparent
-                          : colors[tile.correctPosition.side],
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
-                        //'${tile.correctPosition.y * puzzle.size + tile.correctPosition.x + 1}',
-                      ),
+    var whiteSpacePosition = puzzle.getWhiteSpacePosition();
+    var whiteSpaceNeighbours = puzzle.getWhiteSpaceNeighbours();
+
+    var positionedTiles = <Widget>[];
+    for (var tile in tiles) {
+      if (whiteSpaceNeighbours.containsValue(tile.currentPosition)) {
+        positionedTiles.add(
+          AnimatedPositioned(
+            key: ValueKey('${tile.correctPosition}'),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            left: 300.0 / puzzle.size * (tile.currentPosition.x),
+            top: 300.0 / puzzle.size * (tile.currentPosition.y),
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: tile.isWhiteSpace
+                        ? Colors.transparent
+                        : sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                      //'${tile.correctPosition.y * puzzle.size + tile.correctPosition.x + 1}',
                     ),
                   ),
                 ),
               ),
             ),
-        ],
+          ),
+        );
+      } else {
+        positionedTiles.add(
+          Positioned(
+            left: 300.0 / puzzle.size * (tile.currentPosition.x),
+            top: 300.0 / puzzle.size * (tile.currentPosition.y),
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: tile.isWhiteSpace
+                        ? Colors.transparent
+                        : sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                      //'${tile.correctPosition.y * puzzle.size + tile.correctPosition.x + 1}',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    if (whiteSpacePosition.side == index) {
+      if (whiteSpacePosition.x == 0) {
+        var tile = puzzle.getTileFromPosition(whiteSpaceNeighbours['left']!);
+        positionedTiles.add(
+          AnimatedPositioned(
+            key: ValueKey('${tile.correctPosition}'),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            left: 300.0 / puzzle.size * -1,
+            top: 300.0 / puzzle.size * (whiteSpacePosition.y),
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      if (whiteSpacePosition.x == puzzle.size - 1) {
+        var tile = puzzle.getTileFromPosition(whiteSpaceNeighbours['right']!);
+        positionedTiles.add(
+          AnimatedPositioned(
+            key: ValueKey('${tile.correctPosition}'),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            left: 300.0,
+            top: 300.0 / puzzle.size * (whiteSpacePosition.y),
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      if (whiteSpacePosition.y == 0) {
+        var tile = puzzle.getTileFromPosition(whiteSpaceNeighbours['top']!);
+        positionedTiles.add(
+          AnimatedPositioned(
+            key: ValueKey('${tile.correctPosition}'),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            left: 300.0 / puzzle.size * (whiteSpacePosition.x),
+            top: -1 * 300.0 / puzzle.size,
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      if (whiteSpacePosition.y == puzzle.size - 1) {
+        var tile = puzzle.getTileFromPosition(whiteSpaceNeighbours['bottom']!);
+        positionedTiles.add(
+          AnimatedPositioned(
+            key: ValueKey('${tile.correctPosition}'),
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+            left: 300.0 / puzzle.size * (whiteSpacePosition.x),
+            top: 300.0,
+            child: SizedBox(
+              width: 300.0 / puzzle.size,
+              height: 300.0 / puzzle.size,
+              child: GestureDetector(
+                onTap: () => context.read<PuzzleCubit>().tileTapped(tile),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    color: sideColors[tile.correctPosition.side],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${tile.currentPosition}\n${tile.correctPosition}\n${tile.isWhiteSpace}',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return positionedTiles;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var puzzle = context.select((PuzzleCubit bloc) => bloc.state.puzzle);
+    var colors = context.select((PuzzleCubit bloc) => bloc.state.sideColors);
+    return SizedBox(
+      width: 300,
+      height: 300,
+      child: Stack(
+        children: _createTiles(puzzle, colors, context),
       ),
     );
   }
